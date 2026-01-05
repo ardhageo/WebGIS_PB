@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="css/L.Control.Locate.min.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
-        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
         <link rel="stylesheet" href="css/leaflet-measure.css">
         <style>
         html, body, #map {
@@ -46,16 +46,13 @@
         <script src="js/rbush.min.js"></script>
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
-        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet.photon.js"></script>
         <script src="js/leaflet-measure.js"></script>
-        <script src="data/SatuanPendidikanAmanBencanaSPAB_25.js"></script>
-        <script src="data/EarlyWarningSystemEWS_26.js"></script>
-        <script src="data/RambuKebencanaan_27.js"></script>
-        <script src="data/PapanInformasiBaliho_28.js"></script>
+        <script src="data/RambuKebencanaan_25.js"></script>
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        })
+        }).fitBounds([[-10.469383780259468,109.08613631657525],[-4.876012223136474,117.47171895501404]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -73,20 +70,53 @@
          }
          return tempDiv.innerHTML;
         }
-        // add class to format popup if it contains media
-		function addClassToPopupIfMedia(content, popup) {
-			var tempDiv = document.createElement('div');
-			tempDiv.innerHTML = content;
-			if (tempDiv.querySelector('td img')) {
-				popup._contentNode.classList.add('media');
-					// Delay to force the redraw
-					setTimeout(function() {
-						popup.update();
-					}, 10);
-			} else {
-				popup._contentNode.classList.remove('media');
-			}
-		}
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
@@ -103,9 +133,6 @@
         document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
-            if (bounds_group.getLayers().length) {
-                map.fitBounds(bounds_group.getBounds());
-            }
         }
         map.createPane('pane_GoogleEarth_0');
         map.getPane('pane_GoogleEarth_0').style.zIndex = 400;
@@ -312,202 +339,42 @@
                                               img_bounds_BahayaBanjir_24,
                                               {pane: 'pane_BahayaBanjir_24'});
         bounds_group.addLayer(layer_BahayaBanjir_24);
-        function pop_SatuanPendidikanAmanBencanaSPAB_25(feature, layer) {
+        function pop_RambuKebencanaan_25(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
                         <th scope="row">No</th>\
-                        <td class="visible-with-data" id="No">' + (feature.properties['No'] !== null ? autolinker.link(feature.properties['No'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">SPAB</th>\
-                        <td class="visible-with-data" id="SPAB">' + (feature.properties['SPAB'] !== null ? autolinker.link(feature.properties['SPAB'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">N</th>\
-                        <td class="visible-with-data" id="N">' + (feature.properties['N'] !== null ? autolinker.link(feature.properties['N'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">E</th>\
-                        <td class="visible-with-data" id="E">' + (feature.properties['E'] !== null ? autolinker.link(feature.properties['E'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kecamatan</th>\
-                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kabupaten</th>\
-                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(feature.properties['Kabupaten'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Tanggal Pelaksanaan</th>\
-                        <td class="visible-with-data" id="Tanggal Pelaksanaan">' + (feature.properties['Tanggal Pelaksanaan'] !== null ? autolinker.link(feature.properties['Tanggal Pelaksanaan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Tahun</th>\
-                        <td class="visible-with-data" id="Tahun">' + (feature.properties['Tahun'] !== null ? autolinker.link(feature.properties['Tahun'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td class="visible-with-data" id="Foto"colspan="2"><strong>Foto</strong><br />' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\\/:]/g, '_').trim() + '">' : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_SatuanPendidikanAmanBencanaSPAB_25_0() {
-            return {
-                pane: 'pane_SatuanPendidikanAmanBencanaSPAB_25',
-                radius: 8.0,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(255,161,185,1.0)',
-                interactive: true,
-            }
-        }
-        map.createPane('pane_SatuanPendidikanAmanBencanaSPAB_25');
-        map.getPane('pane_SatuanPendidikanAmanBencanaSPAB_25').style.zIndex = 425;
-        map.getPane('pane_SatuanPendidikanAmanBencanaSPAB_25').style['mix-blend-mode'] = 'normal';
-        var layer_SatuanPendidikanAmanBencanaSPAB_25 = new L.geoJson(json_SatuanPendidikanAmanBencanaSPAB_25, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_SatuanPendidikanAmanBencanaSPAB_25',
-            layerName: 'layer_SatuanPendidikanAmanBencanaSPAB_25',
-            pane: 'pane_SatuanPendidikanAmanBencanaSPAB_25',
-            onEachFeature: pop_SatuanPendidikanAmanBencanaSPAB_25,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_SatuanPendidikanAmanBencanaSPAB_25_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_SatuanPendidikanAmanBencanaSPAB_25);
-        function pop_EarlyWarningSystemEWS_26(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">No</th>\
-                        <td class="visible-with-data" id="No">' + (feature.properties['No'] !== null ? autolinker.link(feature.properties['No'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Tipe EWS</th>\
-                        <td class="visible-with-data" id="Tipe EWS">' + (feature.properties['Tipe EWS'] !== null ? autolinker.link(feature.properties['Tipe EWS'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">N</th>\
-                        <td class="visible-with-data" id="N">' + (feature.properties['N'] !== null ? autolinker.link(feature.properties['N'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">E</th>\
-                        <td class="visible-with-data" id="E">' + (feature.properties['E'] !== null ? autolinker.link(feature.properties['E'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kelurahan</th>\
-                        <td class="visible-with-data" id="Kelurahan">' + (feature.properties['Kelurahan'] !== null ? autolinker.link(feature.properties['Kelurahan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kecamatan</th>\
-                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kabupaten</th>\
-                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(feature.properties['Kabupaten'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Tahun Pengadaan</th>\
-                        <td class="visible-with-data" id="Tahun Pengadaan">' + (feature.properties['Tahun Pengadaan'] !== null ? autolinker.link(feature.properties['Tahun Pengadaan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td class="visible-with-data" id="Kondisi"colspan="2"><strong>Kondisi</strong><br />' + (feature.properties['Kondisi'] !== null ? autolinker.link(feature.properties['Kondisi'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_EarlyWarningSystemEWS_26_0() {
-            return {
-                pane: 'pane_EarlyWarningSystemEWS_26',
-                radius: 8.8,
-                opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
-                weight: 1,
-                fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(86,245,152,1.0)',
-                interactive: true,
-            }
-        }
-        map.createPane('pane_EarlyWarningSystemEWS_26');
-        map.getPane('pane_EarlyWarningSystemEWS_26').style.zIndex = 426;
-        map.getPane('pane_EarlyWarningSystemEWS_26').style['mix-blend-mode'] = 'normal';
-        var layer_EarlyWarningSystemEWS_26 = new L.geoJson(json_EarlyWarningSystemEWS_26, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_EarlyWarningSystemEWS_26',
-            layerName: 'layer_EarlyWarningSystemEWS_26',
-            pane: 'pane_EarlyWarningSystemEWS_26',
-            onEachFeature: pop_EarlyWarningSystemEWS_26,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_EarlyWarningSystemEWS_26_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_EarlyWarningSystemEWS_26);
-        function pop_RambuKebencanaan_27(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">No</th>\
-                        <td class="visible-with-data" id="No">' + (feature.properties['No'] !== null ? autolinker.link(feature.properties['No'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="No">' + (feature.properties['No'] !== null ? autolinker.link(String(feature.properties['No']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Jenis Rambu</th>\
-                        <td class="visible-with-data" id="Jenis Rambu">' + (feature.properties['Jenis Rambu'] !== null ? autolinker.link(feature.properties['Jenis Rambu'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="Jenis Rambu">' + (feature.properties['Jenis Rambu'] !== null ? autolinker.link(String(feature.properties['Jenis Rambu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">N</th>\
-                        <td class="visible-with-data" id="N">' + (feature.properties['N'] !== null ? autolinker.link(feature.properties['N'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="N">' + (feature.properties['N'] !== null ? autolinker.link(String(feature.properties['N']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">E</th>\
-                        <td class="visible-with-data" id="E">' + (feature.properties['E'] !== null ? autolinker.link(feature.properties['E'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="E">' + (feature.properties['E'] !== null ? autolinker.link(String(feature.properties['E']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Kelurahan</th>\
-                        <td class="visible-with-data" id="Kelurahan">' + (feature.properties['Kelurahan'] !== null ? autolinker.link(feature.properties['Kelurahan'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="Kelurahan">' + (feature.properties['Kelurahan'] !== null ? autolinker.link(String(feature.properties['Kelurahan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Kecamatan</th>\
-                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(String(feature.properties['Kecamatan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Kabupaten</th>\
-                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(feature.properties['Kabupaten'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(String(feature.properties['Kabupaten']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Tahun</th>\
-                        <td class="visible-with-data" id="Tahun">' + (feature.properties['Tahun'] !== null ? autolinker.link(feature.properties['Tahun'].toLocaleString()) : '') + '</td>\
+                        <td class="visible-with-data" id="Tahun">' + (feature.properties['Tahun'] !== null ? autolinker.link(String(feature.properties['Tahun']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td class="visible-with-data" id="Foto"colspan="2"><strong>Foto</strong><br />' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\\/:]/g, '_').trim() + '">' : '') + '</td>\
+                        <td class="visible-with-data" id="Foto" colspan="2"><strong>Foto</strong><br />' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\/:]/g, '_').trim().replace(/'/g, '\'').replace(/"/g, '&quot;') + '">' : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -517,11 +384,11 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_RambuKebencanaan_27_0(feature) {
+        function style_RambuKebencanaan_25_0(feature) {
             switch(String(feature.properties['Jenis Rambu'])) {
                 case 'Jalur Evakuasi':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -537,7 +404,7 @@
                     break;
                 case 'Titik Kumpul':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -553,7 +420,7 @@
                     break;
                 case 'Peringatan Banjir':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -567,9 +434,9 @@
                 interactive: true,
             }
                     break;
-                case 'Peringatan Longsor':
+                case 'Peringatan Tanah Longsor':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -585,7 +452,7 @@
                     break;
                 case 'Peringatan Tsunami':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -595,13 +462,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(246,255,0,1.0)',
+                fillColor: 'rgba(83,252,255,1.0)',
                 interactive: true,
             }
                     break;
-                case 'Peringatan Puting Beliung':
+                case 'Peringatan Angin Puting Beliung':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -611,13 +478,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(0,254,241,1.0)',
+                fillColor: 'rgba(159,159,159,1.0)',
                 interactive: true,
             }
                     break;
                 case 'Peringatan Gempa Bumi':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -633,7 +500,7 @@
                     break;
                 case 'Peringatan Erupsi Gunung Api':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -647,9 +514,57 @@
                 interactive: true,
             }
                     break;
+                case 'Peringatan Kebakaran':
+                    return {
+                pane: 'pane_RambuKebencanaan_25',
+                radius: 8.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,1,48,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Peringatan Kebakaran Hutan ':
+                    return {
+                pane: 'pane_RambuKebencanaan_25',
+                radius: 8.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(251,162,74,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Peringatan Kekeringan':
+                    return {
+                pane: 'pane_RambuKebencanaan_25',
+                radius: 8.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(247,255,1,1.0)',
+                interactive: true,
+            }
+                    break;
                 case 'Papan Himbauan Longsor':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -665,7 +580,7 @@
                     break;
                 case 'Papan Himbauan Longsor dan Pohon Tumbang':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -681,7 +596,7 @@
                     break;
                 case 'Papan Himbauan Tsunami':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -697,7 +612,7 @@
                     break;
                 case 'Papan Himbauan Banjir Bandang':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -713,7 +628,7 @@
                     break;
                 case 'Papan Himbauan Gunung Api':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -729,7 +644,7 @@
                     break;
                 case 'Papan Himbauan Karhutla':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -745,7 +660,7 @@
                     break;
                 case 'Papan Himbauan Puting Beliung':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -761,7 +676,7 @@
                     break;
                 case 'Papan Himbauan Banjir':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -777,7 +692,7 @@
                     break;
                 case 'Papan Desa Tangguh Bencana':
                     return {
-                pane: 'pane_RambuKebencanaan_27',
+                pane: 'pane_RambuKebencanaan_25',
                 radius: 8.0,
                 opacity: 1,
                 color: 'rgba(0,0,0,1.0)',
@@ -791,81 +706,10 @@
                 interactive: true,
             }
                     break;
-            }
-        }
-        map.createPane('pane_RambuKebencanaan_27');
-        map.getPane('pane_RambuKebencanaan_27').style.zIndex = 427;
-        map.getPane('pane_RambuKebencanaan_27').style['mix-blend-mode'] = 'normal';
-        var layer_RambuKebencanaan_27 = new L.geoJson(json_RambuKebencanaan_27, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_RambuKebencanaan_27',
-            layerName: 'layer_RambuKebencanaan_27',
-            pane: 'pane_RambuKebencanaan_27',
-            onEachFeature: pop_RambuKebencanaan_27,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_RambuKebencanaan_27_0(feature));
-            },
-        });
-        bounds_group.addLayer(layer_RambuKebencanaan_27);
-        map.addLayer(layer_RambuKebencanaan_27);
-        function pop_PapanInformasiBaliho_28(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">No</th>\
-                        <td class="visible-with-data" id="No">' + (feature.properties['No'] !== null ? autolinker.link(feature.properties['No'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Jenis</th>\
-                        <td class="visible-with-data" id="Jenis">' + (feature.properties['Jenis'] !== null ? autolinker.link(feature.properties['Jenis'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">N</th>\
-                        <td class="visible-with-data" id="N">' + (feature.properties['N'] !== null ? autolinker.link(feature.properties['N'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">E</th>\
-                        <td class="visible-with-data" id="E">' + (feature.properties['E'] !== null ? autolinker.link(feature.properties['E'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Lokasi</th>\
-                        <td class="visible-with-data" id="Lokasi">' + (feature.properties['Lokasi'] !== null ? autolinker.link(feature.properties['Lokasi'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Desa</th>\
-                        <td class="visible-with-data" id="Desa">' + (feature.properties['Desa'] !== null ? autolinker.link(feature.properties['Desa'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kecamatan</th>\
-                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(feature.properties['Kecamatan'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Kabupaten</th>\
-                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(feature.properties['Kabupaten'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">TA</th>\
-                        <td class="visible-with-data" id="TA">' + (feature.properties['TA'] !== null ? autolinker.link(feature.properties['TA'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td class="visible-with-data" id="Foto"colspan="2"><strong>Foto</strong><br />' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\\/:]/g, '_').trim() + '">' : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_PapanInformasiBaliho_28_0() {
-            return {
-                pane: 'pane_PapanInformasiBaliho_28',
-                radius: 8.0,
+                default:
+                    return {
+                pane: 'pane_RambuKebencanaan_25',
+                radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 dashArray: '',
@@ -874,45 +718,34 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(255,1,22,1.0)',
+                fillColor: 'rgba(235,78,240,1.0)',
                 interactive: true,
             }
+                    break;
+            }
         }
-        map.createPane('pane_PapanInformasiBaliho_28');
-        map.getPane('pane_PapanInformasiBaliho_28').style.zIndex = 428;
-        map.getPane('pane_PapanInformasiBaliho_28').style['mix-blend-mode'] = 'normal';
-        var layer_PapanInformasiBaliho_28 = new L.geoJson(json_PapanInformasiBaliho_28, {
+        map.createPane('pane_RambuKebencanaan_25');
+        map.getPane('pane_RambuKebencanaan_25').style.zIndex = 425;
+        map.getPane('pane_RambuKebencanaan_25').style['mix-blend-mode'] = 'normal';
+        var layer_RambuKebencanaan_25 = new L.geoJson(json_RambuKebencanaan_25, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_PapanInformasiBaliho_28',
-            layerName: 'layer_PapanInformasiBaliho_28',
-            pane: 'pane_PapanInformasiBaliho_28',
-            onEachFeature: pop_PapanInformasiBaliho_28,
+            dataVar: 'json_RambuKebencanaan_25',
+            layerName: 'layer_RambuKebencanaan_25',
+            pane: 'pane_RambuKebencanaan_25',
+            onEachFeature: pop_RambuKebencanaan_25,
             pointToLayer: function (feature, latlng) {
                 var context = {
                     feature: feature,
                     variables: {}
                 };
-                return L.circleMarker(latlng, style_PapanInformasiBaliho_28_0(feature));
+                return L.circleMarker(latlng, style_RambuKebencanaan_25_0(feature));
             },
         });
-        bounds_group.addLayer(layer_PapanInformasiBaliho_28);
-        var osmGeocoder = new L.Control.Geocoder({
-            collapsed: true,
-            position: 'topleft',
-            text: 'Search',
-            title: 'Testing'
-        }).addTo(map);
-        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
-        .className += ' fa fa-search';
-        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
-        .title += 'Search for a place';
-        var baseMaps = {};
+        bounds_group.addLayer(layer_RambuKebencanaan_25);
+        map.addLayer(layer_RambuKebencanaan_25);
         var overlaysTree = [
-            {label: '<img src="legend/PapanInformasiBaliho_28.png" /> Papan Informasi (Baliho)', layer: layer_PapanInformasiBaliho_28},
-            {label: 'Rambu Kebencanaan<br /><table><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_JalurEvakuasi0.png" /></td><td>Jalur Evakuasi</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_TitikKumpul1.png" /></td><td>Titik Kumpul</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanBanjir2.png" /></td><td>Peringatan Banjir</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanLongsor3.png" /></td><td>Peringatan Longsor</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanTsunami4.png" /></td><td>Peringatan Tsunami</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanPutingBeliung5.png" /></td><td>Peringatan Puting Beliung</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanGempaBumi6.png" /></td><td>Peringatan Gempa Bumi</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PeringatanErupsiGunungApi7.png" /></td><td>Peringatan Erupsi Gunung Api</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanLongsor8.png" /></td><td>Papan Himbauan Longsor</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanLongsordanPohonTumbang9.png" /></td><td>Papan Himbauan Longsor dan Pohon Tumbang</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanTsunami10.png" /></td><td>Papan Himbauan Tsunami</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanBanjirBandang11.png" /></td><td>Papan Himbauan Banjir Bandang</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanGunungApi12.png" /></td><td>Papan Himbauan Gunung Api</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanKarhutla13.png" /></td><td>Papan Himbauan Karhutla</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanPutingBeliung14.png" /></td><td>Papan Himbauan Puting Beliung</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanHimbauanBanjir15.png" /></td><td>Papan Himbauan Banjir</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_27_PapanDesaTangguhBencana16.png" /></td><td>Papan Desa Tangguh Bencana</td></tr></table>', layer: layer_RambuKebencanaan_27},
-            {label: '<img src="legend/EarlyWarningSystemEWS_26.png" /> Early Warning System (EWS)', layer: layer_EarlyWarningSystemEWS_26},
-            {label: '<img src="legend/SatuanPendidikanAmanBencanaSPAB_25.png" /> Satuan Pendidikan Aman Bencana (SPAB)', layer: layer_SatuanPendidikanAmanBencanaSPAB_25},
+            {label: 'Rambu Kebencanaan<br /><table><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_JalurEvakuasi0.png" /></td><td>Jalur Evakuasi</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_TitikKumpul1.png" /></td><td>Titik Kumpul</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanBanjir2.png" /></td><td>Peringatan Banjir</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanTanahLongsor3.png" /></td><td>Peringatan Tanah Longsor</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanTsunami4.png" /></td><td>Peringatan Tsunami</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanAnginPutingBeliung5.png" /></td><td>Peringatan Angin Puting Beliung</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanGempaBumi6.png" /></td><td>Peringatan Gempa Bumi</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanErupsiGunungApi7.png" /></td><td>Peringatan Erupsi Gunung Api</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanKebakaran8.png" /></td><td>Peringatan Kebakaran</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanKebakaranHutan9.png" /></td><td>Peringatan Kebakaran Hutan </td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PeringatanKekeringan10.png" /></td><td>Peringatan Kekeringan</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanLongsor11.png" /></td><td>Papan Himbauan Longsor</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanLongsordanPohonTumbang12.png" /></td><td>Papan Himbauan Longsor dan Pohon Tumbang</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanTsunami13.png" /></td><td>Papan Himbauan Tsunami</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanBanjirBandang14.png" /></td><td>Papan Himbauan Banjir Bandang</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanGunungApi15.png" /></td><td>Papan Himbauan Gunung Api</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanKarhutla16.png" /></td><td>Papan Himbauan Karhutla</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanPutingBeliung17.png" /></td><td>Papan Himbauan Puting Beliung</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanHimbauanBanjir18.png" /></td><td>Papan Himbauan Banjir</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_PapanDesaTangguhBencana19.png" /></td><td>Papan Desa Tangguh Bencana</td></tr><tr><td style="text-align: center;"><img src="legend/RambuKebencanaan_25_20.png" /></td><td></td></tr></table>', layer: layer_RambuKebencanaan_25},
             {label: "Bahaya Banjir", layer: layer_BahayaBanjir_24},
             {label: "Bahaya Banjir Bandang", layer: layer_BahayaBanjirBandang_23},
             {label: "Bahaya Covid-19", layer: layer_BahayaCovid19_22},
@@ -954,6 +787,6 @@
                 return this._bounds;
             }
         });
-        </script>
+        </script>        
     </body>
 </html>
